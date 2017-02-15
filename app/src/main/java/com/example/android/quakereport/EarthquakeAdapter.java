@@ -7,8 +7,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 
 /**
@@ -51,18 +49,18 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
         View listItemView = convertView;
         if (listItemView == null) {
             listItemView = LayoutInflater.from(getContext()).inflate(
-                    R.layout.list_item, parent, false);
+                    R.layout.earthquake_list_item, parent, false);
         }
 
         Earthquake currentEarthquake = getItem(position);
 
-        TextView magnitudeTextView = (TextView) listItemView.findViewById(R.id.magnitude_value);
+        TextView magnitudeTextView = (TextView) listItemView.findViewById(R.id.magnitude);
         magnitudeTextView.setText(Double.toString(currentEarthquake.getMagnitude()));
 
-        TextView locationTextView = (TextView) listItemView.findViewById(R.id.location_name);
+        TextView locationTextView = (TextView) listItemView.findViewById(R.id.location);
         locationTextView.setText(currentEarthquake.getLocation());
 
-        TextView dateTextView = (TextView) listItemView.findViewById(R.id.date_value);
+        TextView dateTextView = (TextView) listItemView.findViewById(R.id.date);
         dateTextView.setText(currentEarthquake.getDate());
 
         return listItemView;
