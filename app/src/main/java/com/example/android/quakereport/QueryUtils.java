@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Properties;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Helper methods related to requesting and receiving earthquake data from USGS.
@@ -56,8 +58,9 @@ public final class QueryUtils {
                 JSONObject properties = currentEarthquake.getJSONObject("properties");
                 double magnitude = properties.optDouble("mag");
                 String location = properties.optString("place");
-                String time = properties.optString("time");
 
+                // Extract the value for the key called "time"
+                Long time = properties.optLong("time");
                 Earthquake earthquake = new Earthquake(magnitude,location,time);
                 earthquakes.add(earthquake);
             }
