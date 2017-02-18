@@ -1,18 +1,22 @@
 package com.example.android.quakereport;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
-import static com.example.android.quakereport.R.id.locationOffset;
 
 /**
  * Created by Ludeyu on 2/9/2017.
@@ -67,6 +71,12 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
         TextView magnitudeTextView = (TextView) listItemView.findViewById(R.id.magnitude);
         magnitudeTextView.setText(formattedMagnitude);
 
+        GradientDrawable magnitudeCircle = (GradientDrawable) magnitudeTextView.getBackground();
+
+        int magnitudeColor = getMagnitudeColor(currentEarthquake.getMagnitude());
+
+        magnitudeCircle.setColor(magnitudeColor);
+
         String locationObject = currentEarthquake.getLocation();
         String locationOffset = "";
         String primaryLocation = "";
@@ -81,10 +91,10 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
             primaryLocation = locationObject;
         }
 
-        TextView locationOffsetTextView = (TextView) listItemView.findViewById(R.id.locationOffset);
+        TextView locationOffsetTextView = (TextView) listItemView.findViewById(R.id.location_offset);
         locationOffsetTextView.setText(locationOffset);
 
-        TextView primaryLocationTextView = (TextView) listItemView.findViewById(R.id.primaryLocation);
+        TextView primaryLocationTextView = (TextView) listItemView.findViewById(R.id.primary_location);
         primaryLocationTextView.setText(primaryLocation);
 
         // Create a new Date object from the time in milliseconds of the earthquake
@@ -108,6 +118,8 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
         return listItemView;
     }
 
+
+
     /**
      * Return the formatted date string (i.e. "Mar 3, 1984") from a Date object.
      */
@@ -127,7 +139,44 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
     private String formatMagnitude(Double magnitude) {
         DecimalFormat formatter = new DecimalFormat("0.0");
         return formatter.format(magnitude);
+    }
 
+    private int getMagnitudeColor(double magnitude){
+        int magnitudeColor;
+        int magnitudeFloor = (int) Math.floor(magnitude) ;
+        switch (magnitudeFloor){
+            case 0:
+            case 1:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude1);
+                break;
+            case 2:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude2);
+                break;
+            case 3:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude3);
+                break;
+            case 4:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude4);
+                break;
+            case 5:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude5);
+                break;
+            case 6:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude6);
+                break;
+            case 7:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude7);
+                break;
+            case 8:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude8);
+                break;
+            case 9:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude9);
+                break;
+            default:
+                magnitudeColor = ContextCompat.getColor(getContext(),R.color.magnitude10plus);
+        }
+        return magnitudeColor;
     }
 
 }
