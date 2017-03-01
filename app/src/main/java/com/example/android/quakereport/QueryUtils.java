@@ -39,53 +39,6 @@ public final class QueryUtils {
     }
 
     /**
-     * Return a list of {@link Earthquake} objects that has been built up from
-     * parsing a JSON response.
-     */
-    public static List<Earthquake> extractEarthquakes(String earthquakeJSON) {
-
-        // Create an empty ArrayList that we can start adding earthquakes to
-        List<Earthquake> earthquakes = new ArrayList<>();
-
-        // If the JSON string is empty or null, then return early.
-        if (TextUtils.isEmpty(earthquakeJSON)) {
-            return null;
-        }
-
-        // Try to parse the SAMPLE_JSON_RESPONSE. If there's a problem with the way the JSON
-        // is formatted, a JSONException exception object will be thrown.
-        // Catch the exception so the app doesn't crash, and print the error message to the logs.
-        try {
-
-            JSONObject baseJsonResponse = new JSONObject(earthquakeJSON);
-            JSONArray earthquakeArray = baseJsonResponse.getJSONArray("features");
-
-            for(int i = 0; i < earthquakeArray.length(); i++){
-                JSONObject currentEarthquake = earthquakeArray.getJSONObject(i);
-                JSONObject properties = currentEarthquake.getJSONObject("properties");
-                double magnitude = properties.optDouble("mag");
-                String location = properties.optString("place");
-                Long time = properties.optLong("time");
-                String url = properties.getString("url");
-
-                Earthquake earthquake = new Earthquake(magnitude,location,time, url);
-                earthquakes.add(earthquake);
-            }
-
-        } catch (JSONException e) {
-            // If an error is thrown when executing any of the above statements in the "try" block,
-            // catch the exception here, so the app doesn't crash. Print a log message
-            // with the message from the exception.
-            Log.e(LOG_TAG, "Problem parsing the earthquake JSON results", e);
-        }
-
-        // Return the list of earthquakes
-        return earthquakes;
-    }
-
-
-
-    /**
      * Query the USGS dataset and return an {@link List<Earthquake>} object to represent a single earthquake.
      */
     public static List<Earthquake> fetchEarthquakeData(String requestUrl) {
@@ -104,6 +57,74 @@ public final class QueryUtils {
         List<Earthquake> earthquakes = extractEarthquakes(jsonResponse);
 
         // Return the {@link Event}
+        return earthquakes;
+    }
+
+    /**
+     * Return a list of {@link Earthquake} objects that has been built up from
+     * parsing a JSON response.
+     */
+    private static List<Earthquake> extractEarthquakes(String earthquakeJSON) {
+
+        // Create an empty ArrayList that we can start adding earthquakes to
+        List<Earthquake> earthquakes = new ArrayList<>();
+
+        // If the JSON string is empty or null, then return early.
+        if (TextUtils.isEmpty(earthquakeJSON)) {
+            return null;
+        }
+
+        // Try to parse the SAMPLE_JSON_RESPONSE. If there's a problem with the way the JSON
+        // is formatted, a JSONException exception object will be thrown.
+        // Catch the exception so the app doesn't crash, and print the error message to the logs.
+        try {
+
+            // Create a JSONObject from the JSON response string
+            JSONObject baseJsonResponse = new JSONObject(earthquakeJSON);
+
+            // Extract the JSONArray associated with the key called "features",
+            // which represents a list of features (or earthquakes).
+            JSONArray earthquakeArray = baseJsonResponse.getJSONArray("features");
+
+            // For each earthquake in the earthquakeArray, create an {@link Earthquake} object
+            for (int i = 0; i < earthquakeArray.length(); i++) {
+
+                // Get a single earthquake at position i within the list of earthquakes
+                JSONObject currentEarthquake = earthquakeArray.getJSONObject(i);
+
+                // For a given earthquake, extract the JSONObject associated with the
+                // key called "properties", which represents a list of all properties
+                // for that earthquake.
+                JSONObject properties = currentEarthquake.getJSONObject("properties");
+
+                // Extract the value for the key called "mag"
+                double magnitude = properties.getDouble("mag");
+
+                // Extract the value for the key called "place"
+                String location = properties.getString("place");
+
+                // Extract the value for the key called "time"
+                long time = properties.getLong("time");
+
+                // Extract the value for the key called "url"
+                String url = properties.getString("url");
+
+                // Create a new {@link Earthquake} object with the magnitude, location, time,
+                // and url from the JSON response.
+                Earthquake earthquake = new Earthquake(magnitude, location, time, url);
+
+                // Add the new {@link Earthquake} to the list of earthquakes.
+                earthquakes.add(earthquake);
+            }
+
+        } catch (JSONException e) {
+            // If an error is thrown when executing any of the above statements in the "try" block,
+            // catch the exception here, so the app doesn't crash. Print a log message
+            // with the message from the exception.
+            Log.e("QueryUtils", "Problem parsing the earthquake JSON results", e);
+        }
+
+        // Return the list of earthquakes
         return earthquakes;
     }
 
@@ -142,7 +163,7 @@ public final class QueryUtils {
 
             // If the request was successful (response code 200),
             // then read the input stream and parse the response.
-            if (urlConnection.getResponseCode() == 200) {
+            if(urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
             } else {
