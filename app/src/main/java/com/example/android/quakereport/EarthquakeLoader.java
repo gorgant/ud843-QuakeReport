@@ -1,47 +1,31 @@
 package com.example.android.quakereport;
 
-import android.content.Context;
 import android.content.AsyncTaskLoader;
+import android.content.Context;
 
 import java.util.List;
 
 /**
- * Created by Ludeyu on 3/2/2017.
+ * Loads a list of earthquakes by using an AsyncTask to perform the
+ * network request to the given URL.
  */
+public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
 
-public class EarthquakeLoader extends AsyncTaskLoader <List<Earthquake>> {
+    /** Tag for log messages */
+    private static final String LOG_TAG = EarthquakeLoader.class.getName();
 
-    String databaseQuery;
+    /** Query URL */
+    private String mUrl;
 
     /**
-     * Called on a worker thread to perform the actual load and to return
-     * the result of the load operation.
-     * <p>
-     * Implementations should not deliver the result directly, but should return them
-     * from this method, which will eventually end up calling {@link #deliverResult} on
-     * the UI thread.  If implementations need to process the results on the UI thread
-     * they may override {@link #deliverResult} and do so there.
-     * <p>
-     * To support cancellation, this method should periodically check the value of
-     * {@link #isLoadInBackgroundCanceled} and terminate when it returns true.
-     * Subclasses may also override {@link #cancelLoadInBackground} to interrupt the load
-     * directly instead of polling {@link #isLoadInBackgroundCanceled}.
-     * <p>
-     * When the load is canceled, this method may either return normally or throw
-     * {@link OperationCanceledException}.  In either case, the {@link Loader} will
-     * call {@link #onCanceled} to perform post-cancellation cleanup and to dispose of the
-     * result object, if any.
+     * Constructs a new {@link EarthquakeLoader}.
      *
-     * @return The result of the load operation.
-     * @throws OperationCanceledException if the load is canceled during execution.
-     * @see #isLoadInBackgroundCanceled
-     * @see #cancelLoadInBackground
-     * @see #onCanceled
+     * @param context of the activity
+     * @param url to load data from
      */
-
     public EarthquakeLoader(Context context, String url) {
         super(context);
-        databaseQuery = url;
+        mUrl = url;
     }
 
     @Override
@@ -49,14 +33,17 @@ public class EarthquakeLoader extends AsyncTaskLoader <List<Earthquake>> {
         forceLoad();
     }
 
+    /**
+     * This is on a background thread.
+     */
     @Override
     public List<Earthquake> loadInBackground() {
-        // Don't perform the request if there are no URLs, or the first URL is null
-        if (databaseQuery == "") {
+        if (mUrl == null) {
             return null;
         }
 
-        List<Earthquake> result = QueryUtils.fetchEarthquakeData(databaseQuery);
-        return result;
+        // Perform the network request, parse the response, and extract a list of earthquakes.
+        List<Earthquake> earthquakes = QueryUtils.fetchEarthquakeData(mUrl);
+        return earthquakes;
     }
 }
