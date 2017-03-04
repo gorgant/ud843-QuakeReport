@@ -53,7 +53,7 @@ public class EarthquakeActivity extends AppCompatActivity
     /** Adapter for the list of earthquakes */
     private EarthquakeAdapter mAdapter;
 
-    private TextView mEmptyStateView;
+    private TextView mEmptyStateTextView;
 
     private ProgressBar mProgressBar;
 
@@ -67,48 +67,44 @@ public class EarthquakeActivity extends AppCompatActivity
         // Find a reference to the {@link ListView} in the layout
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
 
-        // Initialize an empty state view
-        mEmptyStateView = (TextView) findViewById(R.id.empty_view);
+        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        earthquakeListView.setEmptyView(mEmptyStateTextView);
 
-        //Initialize a progress bar
-        mProgressBar = (ProgressBar) findViewById(R.id.loading_spinner);
+        // Create a new adapter that takes an empty list of earthquakes as input
+        mAdapter = new EarthquakeAdapter(this, new ArrayList<Earthquake>());
 
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        mIsConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        if (!mIsConnected){
-            mEmptyStateView.setText("No internet connection");
-            mProgressBar.setVisibility(View.GONE);
-        }
+        // Set the adapter on the {@link ListView}
+        // so the list can be populated in the user interface
+        earthquakeListView.setAdapter(mAdapter);
 
-        else {
+        // Set an item click listener on the ListView, which sends an intent to a web browser
+        // to open a website with more information about the selected earthquake.
+        earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                // Find the current earthquake that was clicked on
+                Earthquake currentEarthquake = mAdapter.getItem(position);
 
-            // Create a new adapter that takes an empty list of earthquakes as input
-            mAdapter = new EarthquakeAdapter(this, new ArrayList<Earthquake>());
+                // Convert the String URL into a URI object (to pass into the Intent constructor)
+                Uri earthquakeUri = Uri.parse(currentEarthquake.getUrl());
 
-            // Set the adapter on the {@link ListView}
-            // so the list can be populated in the user interface
-            earthquakeListView.setAdapter(mAdapter);
+                // Create a new intent to view the earthquake URI
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
 
-            // Set an item click listener on the ListView, which sends an intent to a web browser
-            // to open a website with more information about the selected earthquake.
-            earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                    // Find the current earthquake that was clicked on
-                    Earthquake currentEarthquake = mAdapter.getItem(position);
+                // Send the intent to launch a new activity
+                startActivity(websiteIntent);
+            }
+        });
 
-                    // Convert the String URL into a URI object (to pass into the Intent constructor)
-                    Uri earthquakeUri = Uri.parse(currentEarthquake.getUrl());
+        // Get a reference to the ConnectivityManager to check state of network connectivity
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
 
-                    // Create a new intent to view the earthquake URI
-                    Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
+        // Get details on the currently active default data network
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-                    // Send the intent to launch a new activity
-                    startActivity(websiteIntent);
-                }
-            });
-
+        // If there is a network connection, fetch data
+        if (networkInfo != null && networkInfo.isConnected()) {
             // Get a reference to the LoaderManager, in order to interact with loaders.
             LoaderManager loaderManager = getLoaderManager();
 
@@ -116,9 +112,14 @@ public class EarthquakeActivity extends AppCompatActivity
             // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
             // because this activity implements the LoaderCallbacks interface).
             loaderManager.initLoader(EARTHQUAKE_LOADER_ID, null, this);
+        } else {
+            // Otherwise, display error
+            // First, hide loading indicator so error message will be visible
+            View loadingIndicator = findViewById(R.id.loading_indicator);
+            loadingIndicator.setVisibility(View.GONE);
 
-
-            Log.d(LOG_TAG, "Loader Initialized");
+            // Update empty state with no connection error message
+            mEmptyStateTextView.setText(R.string.no_internet_connection);
         }
     }
 
@@ -131,21 +132,23 @@ public class EarthquakeActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
-        Log.d(LOG_TAG,"Loader Finished Loading");
+        // Hide loading indicator because the data has been loaded
+        View loadingIndicator = findViewById(R.id.loading_indicator);
+        loadingIndicator.setVisibility(View.GONE);
+
+        // Set empty state text to display "No earthquakes found."
+        mEmptyStateTextView.setText(R.string.no_earthquakes);
+
         // Clear the adapter of previous earthquake data
         mAdapter.clear();
-        mProgressBar.setVisibility(View.GONE);
 
         // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
         // data set. This will trigger the ListView to update.
         if (earthquakes != null && !earthquakes.isEmpty()) {
             mAdapter.addAll(earthquakes);
         }
-        else {
-            mEmptyStateView.setText(R.string.no_earthquakes);
-        }
-
     }
+
 
     @Override
     public void onLoaderReset(Loader<List<Earthquake>> loader) {
